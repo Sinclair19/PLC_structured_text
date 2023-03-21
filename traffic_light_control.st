@@ -156,9 +156,46 @@ IF we_red THEN
     END_IF 
 END_IF
 
+IF ns_car_go THEN
+    ns_car_r := FALSE;
+    ns_car_g := TRUE;
+ELSIF (NOT ns_car_go AND start) THEN
+    ns_car_r := TRUE;
+    ns_car_g := FALSE;
+END_IF
+
+IF we_car_go THEN
+    we_car_r := FALSE;
+    we_car_g := TRUE;
+ELSIF (NOT we_car_go AND start) THEN
+    we_car_r := TRUE;
+    we_car_g := FALSE;
+END_IF
+
+IF ns_human_go THEN
+    ns_human_g := TRUE;
+    ns_human_r := FALSE;
+ELSIF (ns_human_go = FALSE AND start = TRUE) THEN
+    ns_human_g := FALSE;
+    ns_human_r := TRUE;
+END_IF;
+
+IF we_human_go THEN
+    we_human_g := TRUE;
+    we_human_r := FALSE;
+ELSIF (we_human_go = FALSE AND start = TRUE) THEN
+    we_human_g := FALSE;
+    we_human_r := TRUE;
+END_IF;
+
 IF ns_green THEN
     ns_car_go := TRUE;
     ns_human_go := TRUE;
+    IF car_green_time + 1 - ns_g_temp_time <= 4 THEN
+        IF ns_g_temp_time MOD 2 = 1 THEN
+            ns_car_g := FALSE;
+        END_IF
+    END_IF
     IF ns_g_temp_time = car_green_time + 1 THEN
         ns_g_temp_time := 0;
         HMI_ns_car_time := car_yellow_time;
@@ -174,6 +211,11 @@ END_IF
 IF we_green THEN
     we_car_go := TRUE;
     we_human_go := TRUE;
+    IF car_green_time + 1 - we_g_temp_time <= 4 THEN
+        IF we_g_temp_time MOD 2 = 1 THEN
+            we_car_g := FALSE;
+        END_IF
+    END_IF
     IF we_g_temp_time = car_green_time + 1 THEN
         we_g_temp_time := 0;
         HMI_we_car_time := car_yellow_time;
@@ -218,37 +260,6 @@ IF we_yellow THEN
 	END_IF
 END_IF
 
-IF ns_car_go THEN
-    ns_car_r := FALSE;
-    ns_car_g := TRUE;
-ELSIF (NOT ns_car_go AND start) THEN
-    ns_car_r := TRUE;
-    ns_car_g := FALSE;
-END_IF
-
-IF we_car_go THEN
-    we_car_r := FALSE;
-    we_car_g := TRUE;
-ELSIF (NOT we_car_go AND start) THEN
-    we_car_r := TRUE;
-    we_car_g := FALSE;
-END_IF
-
-IF ns_human_go THEN
-    ns_human_g := TRUE;
-    ns_human_r := FALSE;
-ELSIF (ns_human_go = FALSE AND start = TRUE) THEN
-    ns_human_g := FALSE;
-    ns_human_r := TRUE;
-END_IF;
-
-IF we_human_go THEN
-    we_human_g := TRUE;
-    we_human_r := FALSE;
-ELSIF (we_human_go = FALSE AND start = TRUE) THEN
-    we_human_g := FALSE;
-    we_human_r := TRUE;
-END_IF;
 
 IF TRIG_1.Q THEN
     IF ns_red THEN
