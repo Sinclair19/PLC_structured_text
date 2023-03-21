@@ -9,14 +9,14 @@ VAR
 
     ns_car_r AT %QX0.0: BOOL;
     ns_car_y AT %QX0.1: BOOL;
-    ns_car_g AT %QX0.2: BOOL;
-
-    ns_human_r AT %QX0.6: BOOL;
-    ns_human_g AT %QX0.7: BOOL;    
+    ns_car_g AT %QX0.2: BOOL;    
 
     we_car_r AT %QX0.3: BOOL;
     we_car_y AT %QX0.4: BOOL;
     we_car_g AT %QX0.5: BOOL;
+
+    ns_human_r AT %QX0.6: BOOL;
+    ns_human_g AT %QX0.7: BOOL;
 
     we_human_r AT %QX0.8: BOOL;
     we_human_g AT %QX0.9: BOOL; 
@@ -25,6 +25,25 @@ VAR
     HMI_we_car_time AT %MW2: INT;
     HMI_ns_human_time AT %MW3: INT;
     HMI_we_human_time AT %MW4: INT;
+
+    HMI_ns_car_r AT %MX15.0: BOOL;
+    HMI_ns_car_y AT %MX15.1: BOOL;
+    HMI_ns_car_g AT %MX15.2: BOOL;
+    HMI_ns_human_r AT %MX15.3: BOOL;
+    HMI_ns_human_g AT %MX15.4: BOOL;  
+
+    HMI_we_car_r AT %MX16.0: BOOL;
+    HMI_we_car_y AT %MX16.1: BOOL;
+    HMI_we_car_g AT %MX16.2: BOOL;
+    HMI_we_human_r AT %MX16.3: BOOL;
+    HMI_we_human_g AT %MX16.4: BOOL; 
+
+    HMI_first_button_g AT %MX17.0: BOOL;
+    HMI_first_button_y AT %MX17.1: BOOL;
+    HMI_first_button_r AT %MX17.2: BOOL;
+    HMI_second_button_g AT %MX18.0: BOOL;
+    HMI_second_button_y AT %MX18.1: BOOL;
+    HMI_second_button_r AT %MX18.2: BOOL;
 
     ns_r_temp_time: INT;
     we_r_temp_time: INT;
@@ -87,6 +106,24 @@ END_IF
 
 BLINK_1(ENABLE := (start = TRUE) , TIMELOW := T#500MS, TIMEHIGH:= T#500MS, OUT => );
 TRIG_1(CLK := BLINK_1.OUT, Q => );
+
+//bind
+HMI_ns_car_r := ns_car_r;
+HMI_ns_car_y := ns_car_y; 
+HMI_ns_car_g := ns_car_g;
+HMI_ns_human_r := ns_human_r;
+HMI_ns_human_g := ns_human_g;  
+HMI_we_car_r := we_car_r;
+HMI_we_car_y := we_car_y;
+HMI_we_car_g := we_car_g;
+HMI_we_human_r := we_human_r;
+HMI_we_human_g := we_human_g; 
+HMI_first_button_g := first_button_g;
+HMI_first_button_y := first_button_y;
+HMI_first_button_r := first_button_r;
+HMI_second_button_g := second_button_g;
+HMI_second_button_y := second_button_y;
+HMI_second_button_r := second_button_r;
 
 // clear
 IF stop THEN
