@@ -45,10 +45,10 @@ VAR
     HMI_second_button_y AT %MX18.1: BOOL;
     HMI_second_button_r AT %MX18.2: BOOL;
 
-    HMI_car_red_time AT %MW5: INT;
-    HMI_car_green_time AT %MW6: INT;
-    HMI_car_yellow_time AT %MW7: INT;
-    HMI_TIME_SET: AT %MX14.0: BOOL;
+    HMI_car_red_time AT %MW19: INT;
+    HMI_car_green_time AT %MW20: INT;
+    HMI_car_yellow_time AT %MW21: INT;
+    HMI_TIME_SET AT %MX14.0: BOOL;
 
     ns_r_temp_time: INT;
     we_r_temp_time: INT;
@@ -81,18 +81,20 @@ VAR
     we_green: BOOL;
     we_yellow: BOOL;
 
+    passer_button: BOOL;
+
     BLINK_1: BLINK;
     TRIG_1: R_TRIG;
 
 END_VAR
 
-// allow 
-IF HMI_TIME_SET THEN:
+// allow HMI set time
+IF HMI_TIME_SET THEN
     car_red_time := HMI_car_red_time - 1;
     car_green_time := HMI_car_green_time - 1;
     car_yellow_time := HMI_car_red_time - HMI_car_green_time - 1;
     HMI_car_yellow_time := car_yellow_time + 1;
-ELSE THEN
+ELSE
     car_red_time := 19;
     car_green_time := 14;
     car_yellow_time := 4;
@@ -104,6 +106,7 @@ END_IF
 human_red_time := car_red_time + car_yellow_time + 1; //double 0 have been added, so 
 human_green_time := car_green_time;
 
+// button triger
 IF first_button_g THEN
     IF NOT start THEN
         ns_red := TRUE;
@@ -120,6 +123,14 @@ IF first_button_r THEN
     stop := TRUE;
 END_IF
 
+IF second_button_g OR second_button_r THEN
+    IF (ns_red AND we_green) OR (we_red AND ns_green) THEN
+        passer_button := TRUE;
+    END_IF
+END_IF
+
+
+// time relative
 BLINK_1(ENABLE := (start = TRUE) , TIMELOW := T#500MS, TIMEHIGH:= T#500MS, OUT => );
 TRIG_1(CLK := BLINK_1.OUT, Q => );
 
@@ -182,7 +193,7 @@ END_IF
 IF ns_red THEN
     ns_car_go := FALSE;
     ns_human_go := FALSE;
-    if ns_r_temp_time = car_red_time + 1 THEN // 19 equals to 20 second because of 0 
+    IF ns_r_temp_time = car_red_time + 1 THEN // 19 equals to 20 second because of 0 
         ns_r_temp_time := 0;
         HMI_ns_car_time := car_green_time;
 
@@ -311,6 +322,23 @@ IF we_yellow THEN
         we_yellow := FALSE;
         we_red := TRUE;
 	END_IF
+END_IF
+
+// passer_button
+IF passer_button THEN
+    IF ns_red AND we_green AND ns_r_temp_time + 3 <= car_red_time + 1 AND we_g_temp_time + 3 <= car_green_time + 1 THEN
+        ns_r_temp_time := ns_r_temp_time + 3;
+        we_g_temp_time := we_g_temp_time + 3;
+        ns_human_temp_time := ns_human_temp_time + 3;
+        we_human_temp_time := we_human_temp_time + 3;
+    END_IF
+    IF we_red AND ns_green AND we_r_temp_time + 3 <= car_red_time + 1 AND ns_g_temp_time + 3 <= car_green_time + 1 THEN
+        we_r_temp_time := we_r_temp_time + 3;
+        ns_g_temp_time := ns_g_temp_time + 3;
+        ns_human_temp_time := ns_human_temp_time + 3;
+        we_human_temp_time := we_human_temp_time + 3;
+    END_IF
+    passer_button := FALSE;
 END_IF
 
 
