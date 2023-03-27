@@ -45,6 +45,11 @@ VAR
     HMI_second_button_y AT %MX18.1: BOOL;
     HMI_second_button_r AT %MX18.2: BOOL;
 
+    HMI_car_red_time AT %MW5: INT;
+    HMI_car_green_time AT %MW6: INT;
+    HMI_car_yellow_time AT %MW7: INT;
+    HMI_TIME_SET: AT %MX14.0: BOOL;
+
     ns_r_temp_time: INT;
     we_r_temp_time: INT;
     ns_g_temp_time: INT;
@@ -56,7 +61,7 @@ VAR
     start: BOOL;
     stop: BOOL; 
 
-    car_red_time : INT;
+    car_red_time: INT;
     car_yellow_time: INT;
     car_green_time: INT;
     human_red_time: INT;
@@ -81,9 +86,20 @@ VAR
 
 END_VAR
 
-car_red_time := 19;
-car_green_time := 14;
-car_yellow_time := 4;
+// allow 
+IF HMI_TIME_SET THEN:
+    car_red_time := HMI_car_red_time - 1;
+    car_green_time := HMI_car_green_time - 1;
+    car_yellow_time := HMI_car_red_time - HMI_car_green_time - 1;
+    HMI_car_yellow_time := car_yellow_time + 1;
+ELSE THEN
+    car_red_time := 19;
+    car_green_time := 14;
+    car_yellow_time := 4;
+    HMI_car_red_time := car_red_time + 1;
+    HMI_car_green_time := car_green_time + 1;
+    HMI_car_yellow_time := car_yellow_time + 1;
+END_IF
 
 human_red_time := car_red_time + car_yellow_time + 1; //double 0 have been added, so 
 human_green_time := car_green_time;
