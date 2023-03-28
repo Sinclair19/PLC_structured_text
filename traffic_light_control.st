@@ -26,11 +26,11 @@ VAR
     HMI_ns_human_time AT %MW3: INT;
     HMI_we_human_time AT %MW4: INT;
 
-    HMI_ns_car_r AT %MX15.0: BOOL;
-    HMI_ns_car_y AT %MX15.1: BOOL;
-    HMI_ns_car_g AT %MX15.2: BOOL;
-    HMI_ns_human_r AT %MX15.3: BOOL;
-    HMI_ns_human_g AT %MX15.4: BOOL;  
+    HMI_ns_car_r AT %MX14.0: BOOL;
+    HMI_ns_car_y AT %MX14.1: BOOL;
+    HMI_ns_car_g AT %MX14.2: BOOL;
+    HMI_ns_human_r AT %MX14.3: BOOL;
+    HMI_ns_human_g AT %MX14.4: BOOL;  
 
     HMI_we_car_r AT %MX16.0: BOOL;
     HMI_we_car_y AT %MX16.1: BOOL;
@@ -38,17 +38,22 @@ VAR
     HMI_we_human_r AT %MX16.3: BOOL;
     HMI_we_human_g AT %MX16.4: BOOL; 
 
-    HMI_first_button_g AT %MX17.0: BOOL;
-    HMI_first_button_y AT %MX17.1: BOOL;
-    HMI_first_button_r AT %MX17.2: BOOL;
-    HMI_second_button_g AT %MX18.0: BOOL;
-    HMI_second_button_y AT %MX18.1: BOOL;
-    HMI_second_button_r AT %MX18.2: BOOL;
-
+    HMI_first_button_g AT %MX18.0: BOOL;
+    HMI_first_button_y AT %MX18.1: BOOL;
+    HMI_first_button_r AT %MX18.2: BOOL;
+    HMI_second_button_g AT %MX18.3: BOOL;
+    HMI_second_button_y AT %MX18.4: BOOL;
+    HMI_second_button_r AT %MX18.5: BOOL;
+	
+    // MW8
+    HMI_show_car_red_time AT %MW16: INT;
+    HMI_show_car_green_time AT %MW17: INT;
+    HMI_show_car_yellow_time AT %MW18: INT;
+	
     HMI_car_red_time AT %MW19: INT;
     HMI_car_green_time AT %MW20: INT;
     HMI_car_yellow_time AT %MW21: INT;
-    HMI_TIME_SET AT %MX14.0: BOOL;
+    HMI_TIME_SET AT %MX44.0: BOOL; //mw22
 
     ns_r_temp_time: INT;
     we_r_temp_time: INT;
@@ -98,10 +103,12 @@ ELSE
     car_red_time := 19;
     car_green_time := 14;
     car_yellow_time := 4;
-    HMI_car_red_time := car_red_time + 1;
-    HMI_car_green_time := car_green_time + 1;
-    HMI_car_yellow_time := car_yellow_time + 1;
 END_IF
+
+HMI_show_car_red_time := car_red_time + 1;
+HMI_show_car_green_time := car_green_time + 1;
+HMI_show_car_yellow_time := car_yellow_time + 1;
+
 
 human_red_time := car_red_time + car_yellow_time + 1; //double 0 have been added, so 
 human_green_time := car_green_time;
@@ -324,25 +331,25 @@ IF we_yellow THEN
 	END_IF
 END_IF
 
-// passer_button
-IF passer_button THEN
-    IF ns_red AND we_green AND ns_r_temp_time + 3 <= car_red_time + 1 AND we_g_temp_time + 3 <= car_green_time + 1 THEN
-        ns_r_temp_time := ns_r_temp_time + 3;
-        we_g_temp_time := we_g_temp_time + 3;
-        ns_human_temp_time := ns_human_temp_time + 3;
-        we_human_temp_time := we_human_temp_time + 3;
-    END_IF
-    IF we_red AND ns_green AND we_r_temp_time + 3 <= car_red_time + 1 AND ns_g_temp_time + 3 <= car_green_time + 1 THEN
-        we_r_temp_time := we_r_temp_time + 3;
-        ns_g_temp_time := ns_g_temp_time + 3;
-        ns_human_temp_time := ns_human_temp_time + 3;
-        we_human_temp_time := we_human_temp_time + 3;
-    END_IF
-    passer_button := FALSE;
-END_IF
-
 
 IF TRIG_1.Q THEN
+	// passer_button
+	IF passer_button THEN
+    	IF ns_red AND we_green AND ns_r_temp_time + 3 < car_red_time + 1 AND we_g_temp_time + 3 < car_green_time + 1 THEN
+    	    ns_r_temp_time := ns_r_temp_time + 3;
+        	we_g_temp_time := we_g_temp_time + 3;
+        	ns_human_temp_time := ns_human_temp_time + 3;
+        	we_human_temp_time := we_human_temp_time + 3;
+    	END_IF
+    	IF we_red AND ns_green AND we_r_temp_time + 3 < car_red_time + 1 AND ns_g_temp_time + 3 < car_green_time + 1 THEN
+        	we_r_temp_time := we_r_temp_time + 3;
+        	ns_g_temp_time := ns_g_temp_time + 3;
+        	ns_human_temp_time := ns_human_temp_time + 3;
+        	we_human_temp_time := we_human_temp_time + 3;
+    	END_IF
+    	passer_button := FALSE;
+	END_IF
+	
     IF ns_red THEN
         ns_r_temp_time := ns_r_temp_time + 1;
         HMI_ns_car_time := car_red_time - ns_r_temp_time;
