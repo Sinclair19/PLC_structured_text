@@ -1,8 +1,8 @@
 PROGRAM Main
 VAR
-    first_button_g AT %IX0.0: BOOL;  // start
+    first_button_g AT %IX0.0: BOOL; // start
     first_button_y AT %IX0.1: BOOL;
-    first_button_r AT %IX0.2: BOOL; //  stop
+    first_button_r AT %IX0.2: BOOL; // stop
     second_button_g AT %IX0.3: BOOL;
     second_button_y AT %IX0.4: BOOL;
     second_button_r AT %IX0.5: BOOL;
@@ -53,7 +53,12 @@ VAR
     HMI_car_red_time AT %MW19: INT;
     HMI_car_green_time AT %MW20: INT;
     HMI_car_yellow_time AT %MW21: INT;
-    HMI_TIME_SET AT %MX44.0: BOOL; //mw22
+    
+    //MW22
+    HMI_TIME_SET AT %MX44.0: BOOL;
+    HMI_TIME_DEFAULT AT %MX44.1: BOOL;
+    HMI_START AT %MX44.2: BOOL;
+    HMI_STOP AT %MX44.3: BOOL;
 
     ns_r_temp_time: INT;
     we_r_temp_time: INT;
@@ -87,6 +92,7 @@ VAR
     we_yellow: BOOL;
 
     passer_button: BOOL;
+	SET_TIME: BOOL;
 
     BLINK_1: BLINK;
     TRIG_1: R_TRIG;
@@ -95,10 +101,23 @@ END_VAR
 
 // allow HMI set time
 IF HMI_TIME_SET THEN
+	SET_TIME := TRUE;
+END_IF
+// trigger HMI_TIME_SET and HMI_STOP and HMI_START to True one time in sequence to set time and restart automatically
+// untested, could result in timing sequence problem
+
+// if timing sequence problem appear, should set a flag to stop runing at the top of the program, than start at the end of the program and reset this flag
+// in this way the system should stop at a cycle and start at next cycle
+
+IF HMI_TIME_DEFAULT THEN
+	SET_TIME := FALSE;
+END_IF
+
+IF SET_TIME THEN
     car_red_time := HMI_car_red_time - 1;
     car_green_time := HMI_car_green_time - 1;
     car_yellow_time := HMI_car_red_time - HMI_car_green_time - 1;
-    HMI_car_yellow_time := car_yellow_time + 1;
+    HMI_car_yellow_time := car_yellow_time;
 ELSE
     car_red_time := 19;
     car_green_time := 14;
@@ -110,11 +129,11 @@ HMI_show_car_green_time := car_green_time + 1;
 HMI_show_car_yellow_time := car_yellow_time + 1;
 
 
-human_red_time := car_red_time + car_yellow_time + 1; //double 0 have been added, so 
+human_red_time := car_red_time + car_yellow_time + 1; //double 0 have been added, so HMI_red_time should add more 1
 human_green_time := car_green_time;
 
 // button triger
-IF first_button_g THEN
+IF first_button_g OR HMI_START THEN
     IF NOT start THEN
         ns_red := TRUE;
         we_green := TRUE;
@@ -125,7 +144,7 @@ IF first_button_g THEN
     stop := FALSE;
 END_IF
 
-IF first_button_r THEN
+IF first_button_r OR HMI_STOP THEN
     start := FALSE;
     stop := TRUE;
 END_IF
