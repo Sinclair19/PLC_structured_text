@@ -16,7 +16,7 @@ VAR
     status AT %MW0: INT; //0 stop ; 1 auto;  2 manual; 3 reset
     run_count AT %MW1: INT;
     run_count_set AT%MW2: INT;
-    run_count_strict: DINT;
+    run_count_strict: INT;
     time_show AT %MW3: INT;
 
     HMI_left_strict AT %MX20.0: BOOL;
@@ -46,13 +46,13 @@ VAR
     mid_3: BOOL;
     mid_4: BOOL;
 
-    pass_left_strict BOOL;
-    pass_first_place BOOL;
-    pass_second_place BOOL;
-    pass_third_place BOOL; 
-    pass_right_strict BOOL;
-    pass_up_strict BOOL;
-    pass_down_strict BOOL;
+    pass_left_strict: BOOL;
+    pass_first_place: BOOL;
+    pass_second_place: BOOL;
+    pass_third_place: BOOL; 
+    pass_right_strict: BOOL;
+    pass_up_strict: BOOL;
+    pass_down_strict: BOOL;
     h_direction : BOOL; // 0 left; 1 right;
     v_direction : BOOL; // 0 up; 1 down;
 
@@ -117,7 +117,8 @@ END_IF
 IF run_count_set = 1 THEN
     run_count_strict := 1;
 ELSE
-    run_count_strict := 100000000000000
+    run_count_strict := -1;
+END_IF
 
 IF status = 3 THEN
     run_count := 0;
@@ -135,7 +136,7 @@ IF status = 3 THEN
         up := FALSE;
     END_IF
     IF left_strict AND up_strict THEN
-        status := 0
+        status := 0;
     END_IF
 END_IF
 
@@ -177,10 +178,10 @@ END_IF
 
 IF status = 1 THEN
     IF run_count = run_count_strict THEN
-        status = 3;
+        status := 3;
     ELSE
         IF left_strict THEN
-            auto_mode_reset := FALSE
+            auto_mode_reset := FALSE;
             progress := TRUE;
         END_IF
 
@@ -194,8 +195,8 @@ IF status = 1 THEN
 
             IF down_strict THEN
                 time_show := first_place_time - temp_time;
-                IF time_show := 0 THEN
-                    temp_time := 0
+                IF time_show = 0 THEN
+                    temp_time := 0;
                     already_down := TRUE;
                 END_IF
             ELSE
@@ -203,13 +204,14 @@ IF status = 1 THEN
                 v_direction := TRUE;
             END_IF   
 
-            IF already_down THEN:
+            IF already_down THEN
                 IF up_strict THEN
-                    time_show := first_place_stand_time - temp_time
-                    IF time_show := 0 THEN
+                    time_show := first_place_stand_time - temp_time;
+                    IF time_show = 0 THEN
                         progress := TRUE;
                         already_down := FALSE;
                         temp_time := 0;
+                    END_IF
                 ELSE
                     up := TRUE;
                     v_direction := FALSE;
@@ -222,8 +224,8 @@ IF status = 1 THEN
 
             IF down_strict THEN
                 time_show := second_place_time - temp_time;
-                IF time_show := 0 THEN
-                    temp_time := 0
+                IF time_show = 0 THEN
+                    temp_time := 0;
                     already_down := TRUE;
                 END_IF
             ELSE
@@ -231,13 +233,14 @@ IF status = 1 THEN
                 v_direction := TRUE;
             END_IF   
 
-            IF already_down THEN:
+            IF already_down THEN
                 IF up_strict THEN
-                    time_show := second_place_stand_time - temp_time
-                    IF time_show := 0 THEN
+                    time_show := second_place_stand_time - temp_time;
+                    IF time_show = 0 THEN
                         progress := TRUE;
                         already_down := FALSE;
                         temp_time := 0;
+                    END_IF
                 ELSE
                     up := TRUE;
                     v_direction := FALSE;
@@ -250,8 +253,8 @@ IF status = 1 THEN
 
             IF down_strict THEN
                 time_show := third_place_time - temp_time;
-                IF time_show := 0 THEN
-                    temp_time := 0
+                IF time_show = 0 THEN
+                    temp_time := 0;
                     already_down := TRUE;
                 END_IF
             ELSE
@@ -259,13 +262,14 @@ IF status = 1 THEN
                 v_direction := TRUE;
             END_IF   
 
-            IF already_down THEN:
+            IF already_down THEN
                 IF up_strict THEN
-                    time_show := third_place_stand_time - temp_time
-                    IF time_show := 0 THEN
+                    time_show := third_place_stand_time - temp_time;
+                    IF time_show = 0 THEN
                         progress := TRUE;
                         already_down := FALSE;
                         temp_time := 0;
+                    END_IF
                 ELSE
                     up := TRUE;
                     v_direction := FALSE;
@@ -275,15 +279,16 @@ IF status = 1 THEN
     
         IF right_strict THEN
             progress := FALSE;
-            auto_mode_reset = TRUE;
-            count := count + 1;
+            auto_mode_reset := TRUE;
+            run_count := run_count + 1;
         END_IF
 
         IF auto_mode_reset THEN
             right := TRUE;
             h_direction := FALSE;
         END_IF
-
+    
+    END_IF
 END_IF            
 
 
