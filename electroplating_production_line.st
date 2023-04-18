@@ -131,12 +131,15 @@ HMI_down_strict := down_strict;
 IF status <> 0 THEN
     IF left_strict THEN
         HMI_left_strict := TRUE;
+		HMI_mid_1 := FALSE;
 
         pass_left_strict := TRUE;
         pass_first_place := FALSE;
     END_IF
     IF first_place THEN
         HMI_first_place := TRUE;
+		HMI_mid_1 := FALSE;
+		HMI_mid_2 := FALSE;
 
         pass_left_strict := FALSE;
         pass_first_place := TRUE;
@@ -144,6 +147,8 @@ IF status <> 0 THEN
     END_IF
     IF second_place THEN
         HMI_second_place := TRUE;
+		HMI_mid_2 := FALSE;
+		HMI_mid_3 := FALSE;
 
         pass_first_place := FALSE;
         pass_second_place := TRUE;
@@ -151,6 +156,8 @@ IF status <> 0 THEN
     END_IF
     IF third_place THEN
         HMI_third_place := TRUE;
+		HMI_mid_3 := FALSE;
+		HMI_mid_4 := FALSE;
 
         pass_second_place := FALSE;
         pass_third_place := TRUE;
@@ -158,6 +165,7 @@ IF status <> 0 THEN
     END_IF
     IF right_strict THEN
         HMI_right_strict := TRUE;
+		HMI_mid_4 := FALSE;
 
         pass_third_place := FALSE;
         pass_right_strict := TRUE;
@@ -167,42 +175,61 @@ IF status <> 0 THEN
         IF h_direction = 2 AND (NOT left_strict) THEN
             HMI_left_strict := FALSE;
             HMI_mid_1 := TRUE;
+			pass_left_strict := FALSE;
         END_IF
     END_IF
     IF pass_first_place THEN
         IF h_direction = 1 AND (NOT first_place) THEN
             HMI_first_place := FALSE;
             HMI_mid_1 := TRUE;
+			HMI_mid_2 := FALSE;
+			pass_first_place := FALSE;
         END_IF
         IF h_direction = 2 AND (NOT first_place) THEN
             HMI_first_place := FALSE;
+			HMI_mid_1 := FALSE;
             HMI_mid_2 := TRUE;
+			HMI_mid_3 := FALSE;
+			pass_first_place := FALSE;
         END_IF
     END_IF
     IF pass_second_place THEN
         IF h_direction = 1 AND (NOT second_place) THEN
             HMI_second_place := FALSE;
+			HMI_mid_1 := FALSE;
             HMI_mid_2 := TRUE;
+			HMI_mid_3 := FALSE;
+			pass_second_place := FALSE;
         END_IF
         IF h_direction = 2 AND (NOT second_place) THEN
             HMI_second_place := FALSE;
+			HMI_mid_2 := FALSE;
             HMI_mid_3 := TRUE;
+			HMI_mid_4 := FALSE;
+			pass_second_place := FALSE;
         END_IF
     END_IF
     IF pass_third_place THEN
         IF h_direction = 1 AND (NOT third_place) THEN
             HMI_third_place := FALSE;
+            HMI_mid_2 := FALSE;
             HMI_mid_3 := TRUE;
+			HMI_mid_4 := FALSE;
+			pass_third_place := FALSE;
         END_IF
         IF h_direction = 2 AND (NOT third_place) THEN
             HMI_third_place := FALSE;
-            HMI_mid_4 := TRUE;
+            HMI_mid_3 := FALSE;
+			HMI_mid_4 := TRUE;
+			pass_third_place := FALSE;
         END_IF
     END_IF
-    IF pass_left_strict THEN
+    IF pass_right_strict THEN
         IF h_direction = 1 AND (NOT right_strict) THEN
             HMI_right_strict := FALSE;
-            HMI_mid_4 := TRUE;
+            HMI_mid_3 := FALSE;
+			HMI_mid_4 := TRUE;
+			pass_right_strict := FALSE;
         END_IF
     END_IF
     
@@ -210,20 +237,26 @@ IF status <> 0 THEN
         HMI_up_down_mid := TRUE;
     END_IF
 
-    IF h_direction = 1 THEN
+    IF h_direction = 1 AND (left OR right) THEN
         HMI_turn_left := TRUE;
         HMI_turn_right := FALSE;
-    ELSIF h_direction = 2 THEN
+    ELSIF h_direction = 2 AND (left OR right) THEN
         HMI_turn_left := FALSE;
         HMI_turn_right := TRUE;
+	ELSE
+		HMI_turn_left := FALSE;
+        HMI_turn_right := FALSE;
     END_IF
 
-    IF v_direction = 1 THEN
+    IF v_direction = 1 AND (up OR down) THEN
         HMI_turn_up := TRUE;
         HMI_turn_down := FALSE;
-    ELSIF v_direction = 2 THEN
+    ELSIF v_direction = 2 AND (up OR down) THEN
         HMI_turn_up := FALSE;
         HMI_turn_down := TRUE;
+	ELSE
+		HMI_turn_up := FALSE;
+        HMI_turn_down := FALSE;
     END_IF
 END_IF
 
@@ -280,32 +313,40 @@ IF status = 2 THEN
             up := TRUE;
             v_direction := 1;
         ELSE
-            up := FALSE;
-        END_IF
+			up := FALSE;
+		END_IF
+	ELSE
+        up := FALSE;
     END_IF
     IF NOT down_strict THEN
         IF HMI_down THEN
             down := TRUE;
             v_direction := 2;
-        ELSE
-            down := FALSE;
+		ELSE
+			down := FALSE;
         END_IF
+	ELSE
+        down := FALSE;
     END_IF
     IF NOT left_strict THEN
         IF HMI_left THEN
             left := TRUE;
             h_direction := 1;
-        ELSE
-            left := FALSE;
+		ELSE
+			left := FALSE;
         END_IF
+	ELSE
+        left := FALSE;
     END_IF
     IF NOT right_strict THEN
         IF HMI_right THEN
             right := TRUE;
             h_direction := 2;
-        ELSE
-            right := FALSE;
+		ELSE
+			right := FALSE;
         END_IF
+	ELSE
+        right := FALSE;
     END_IF
 END_IF
 
