@@ -76,9 +76,14 @@ VAR
     temp_time: INT;
 
     right_progress: BOOL;
+	down_progress: BOOL;
     down_to_strict : BOOL;
     up_to_strict : BOOL;
     already_down : BOOL;
+	already_first_place: BOOL;
+	already_second_place: BOOL;
+	already_third_place: BOOL;
+    already_right_place: BOOL;
     auto_mode_reset : BOOL;
 
     BLINK_1: BLINK;
@@ -264,14 +269,20 @@ IF status = 0 THEN
     HMI_RUN_status := FALSE;
     HMI_STOP_status := TRUE;
     HMI_RESET_status := FALSE;
+	already_down := FALSE;
+	start_timing := FALSE;
     h_direction := 0;
     v_direction := 0;
+	temp_time := 0;
     run_count := 0;
     time_show := 0;
     left := FALSE;
     right := FALSE;
     up := FALSE;
     down := FALSE;
+	already_first_place := FALSE;
+	already_second_place := FALSE;
+	already_third_place := FALSE;
 END_IF
 
 // when status = 1 or 2 mark start
@@ -350,13 +361,11 @@ IF status = 2 THEN
     END_IF
 END_IF
 
-
 IF run_count_set THEN
     run_count_strict := 1;
 ELSIF NOT run_count_set THEN
     run_count_strict := -1;
 END_IF
-
 
 IF status = 1 THEN
     IF run_count = run_count_strict THEN
@@ -366,38 +375,52 @@ IF status = 1 THEN
             auto_mode_reset := FALSE;
             left := FALSE;
             right_progress := TRUE;
+			already_first_place := FALSE;
+			already_second_place := FALSE;
+			already_third_place := FALSE;
+            already_right_place := FALSE;
         END_IF
-
-        IF right_progress THEN
+		
+		IF right_progress THEN
             right := TRUE;
             h_direction := 2;
         ELSIF NOT right_progress THEN
             right := FALSE;
         END_IF
-
-        IF first_place THEN
+        
+		IF first_place AND NOT already_first_place THEN
             right_progress := FALSE;
+			IF NOT down_strict AND NOT already_down THEN
+				down_progress := TRUE;
+			END_IF
 
-            IF down_strict THEN
-                start_timing := TRUE;
-                current_basic_time := first_place_time;
-                IF time_show = 0 THEN
-                    start_timing := FALSE;
-                    already_down := TRUE;
-                END_IF
-            ELSIF (NOT down_strict) AND (NOT already_down) THEN
-                down := TRUE;
-                v_direction := 2;
-            END_IF   
+			IF down_progress THEN
+				
+            	IF down_strict THEN
+					down := FALSE;
+					current_basic_time := first_place_time;
+					start_timing := TRUE;
+                	IF temp_time = current_basic_time AND start_timing THEN
+                    	start_timing := FALSE;
+						down_progress := FALSE;
+                    	already_down := TRUE;
+                	END_IF
+                ELSE
+                    down := TRUE;
+				    v_direction := 2;
+            	END_IF
+			END_IF   
 
             IF already_down THEN
                 IF up_strict THEN
-                    start_timing := TRUE;
+					up := FALSE;
                     current_basic_time := first_place_stand_time;
-                    IF time_show = 0 THEN
+					start_timing := TRUE;
+                    IF temp_time = current_basic_time AND start_timing THEN
                         start_timing := FALSE;
                         already_down := FALSE;
                         right_progress := TRUE;
+						already_first_place := TRUE;
                     END_IF
                 ELSE
                     up := TRUE;
@@ -406,29 +429,39 @@ IF status = 1 THEN
             END_IF
         END_IF
 
-        IF second_place THEN
+        IF second_place AND NOT already_second_place THEN
             right_progress := FALSE;
+			IF NOT down_strict AND NOT already_down THEN
+				down_progress := TRUE;
+			END_IF
 
-            IF down_strict THEN
-                start_timing := TRUE;
-                current_basic_time := second_place_time;
-                IF time_show = 0 THEN
-                    start_timing := FALSE;
-                    already_down := TRUE;
-                END_IF
-            ELSIF (NOT down_strict) AND (NOT already_down) THEN
-                down := TRUE;
-                v_direction := 2;
-            END_IF   
+			IF down_progress THEN
+				
+            	IF down_strict THEN
+					down := FALSE;
+					current_basic_time := second_place_time;
+					start_timing := TRUE;
+                	IF temp_time = current_basic_time AND start_timing THEN
+                    	start_timing := FALSE;
+						down_progress := FALSE;
+                    	already_down := TRUE;
+                	END_IF
+                ELSE
+                    down := TRUE;
+				    v_direction := 2;
+            	END_IF
+			END_IF   
 
             IF already_down THEN
                 IF up_strict THEN
-                    start_timing := TRUE;
+					up := FALSE;
                     current_basic_time := second_place_stand_time;
-                    IF time_show = 0 THEN
+					start_timing := TRUE;
+                    IF temp_time = current_basic_time AND start_timing THEN
                         start_timing := FALSE;
                         already_down := FALSE;
                         right_progress := TRUE;
+						already_second_place := TRUE;
                     END_IF
                 ELSE
                     up := TRUE;
@@ -437,29 +470,39 @@ IF status = 1 THEN
             END_IF
         END_IF
 
-        IF third_place THEN
+        IF third_place AND NOT already_third_place THEN
             right_progress := FALSE;
+			IF NOT down_strict AND NOT already_down THEN
+				down_progress := TRUE;
+			END_IF
 
-            IF down_strict THEN
-                start_timing := TRUE;
-                current_basic_time := third_place_time;
-                IF time_show = 0 THEN
-                    start_timing := FALSE;
-                    already_down := TRUE;
-                END_IF
-            ELSIF (NOT down_strict) AND (NOT already_down) THEN
-                down := TRUE;
-                v_direction := 2;
-            END_IF   
+			IF down_progress THEN
+				
+            	IF down_strict THEN
+					down := FALSE;
+					current_basic_time := third_place_time;
+					start_timing := TRUE;
+                	IF temp_time = current_basic_time AND start_timing THEN
+                    	start_timing := FALSE;
+						down_progress := FALSE;
+                    	already_down := TRUE;
+                	END_IF
+                ELSE
+                    down := TRUE;
+				    v_direction := 2;
+            	END_IF
+			END_IF   
 
             IF already_down THEN
                 IF up_strict THEN
-                    start_timing := TRUE;
+					up := FALSE;
                     current_basic_time := third_place_stand_time;
-                    IF time_show = 0 THEN
+					start_timing := TRUE;
+                    IF temp_time = current_basic_time AND start_timing THEN
                         start_timing := FALSE;
                         already_down := FALSE;
                         right_progress := TRUE;
+						already_third_place := TRUE;
                     END_IF
                 ELSE
                     up := TRUE;
@@ -467,8 +510,8 @@ IF status = 1 THEN
                 END_IF
             END_IF
         END_IF
-    
-        IF right_strict THEN
+
+        IF right_strict AND NOT already_right_place THEN
             run_count := run_count + 1;
             right_progress := FALSE;
             auto_mode_reset := TRUE;
@@ -479,8 +522,7 @@ IF status = 1 THEN
             h_direction := 1;
         END_IF
     END_IF
-END_IF            
-
+END_IF       
 
 IF TRIG_1.Q THEN
     IF start_timing AND (NOT pause) THEN
