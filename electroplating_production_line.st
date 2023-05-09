@@ -54,6 +54,19 @@ VAR
     HMI_turn_up AT%MX24.6: BOOL;
     HMI_turn_down AT%MX24.7: BOOL;
 
+    HMI_TIME_SET AT%MX26.0: BOOL;
+    HMI_TIME_DEFAULT AT%MX26.1: BOOL;
+    SET_TIME: BOOL;
+
+    HMI_first_place_time AT%MW30: INT;
+    HMI_first_place_stand_time AT%MW31: INT;
+    HMI_second_place_time AT%MW32: INT;
+    HMI_second_place_stand_time AT%MW33: INT;
+    HMI_third_place_time AT%MW34: INT;
+    HMI_third_place_stand_time AT%MW35: INT;
+
+    HMI_run_count_strict AT%MW36: INT;
+
     pass_left_strict: BOOL;
     pass_first_place: BOOL;
     pass_second_place: BOOL;
@@ -94,12 +107,30 @@ END_VAR
 BLINK_1(ENABLE := (status = 1 OR status = 2) , TIMELOW := T#500MS, TIMEHIGH:= T#500MS, OUT => );
 TRIG_1(CLK := BLINK_1.OUT, Q => );
 
-first_place_time := 10;
-first_place_stand_time := 3;
-second_place_time := 8;
-second_place_stand_time := 3;
-third_place_time := 5;
-third_place_stand_time := 3;
+
+IF HMI_TIME_SET THEN
+	SET_TIME := TRUE;
+END_IF
+
+IF HMI_TIME_DEFAULT THEN
+	SET_TIME := FALSE;
+END_IF
+
+IF SET_TIME THEN
+    first_place_time := HMI_first_place_time - 1;
+    first_place_stand_time := HMI_first_place_stand_time - 1;
+    second_place_time := HMI_second_place_time - 1;
+    second_place_stand_time := HMI_second_place_stand_time - 1;
+    third_place_time := HMI_third_place_time - 1;
+    third_place_stand_time := HMI_third_place_stand_time - 1;
+ELSE
+    first_place_time := 10;
+    first_place_stand_time := 3;
+    second_place_time := 8;
+    second_place_stand_time := 3;
+    third_place_time := 5;
+    third_place_stand_time := 3;
+END_IF
 
 IF pause THEN
     // store value
@@ -318,6 +349,7 @@ IF status = 3 THEN
     END_IF
 END_IF
 
+
 IF status = 2 THEN
     IF NOT up_strict THEN
         IF HMI_up THEN
@@ -361,11 +393,16 @@ IF status = 2 THEN
     END_IF
 END_IF
 
+
+
 IF run_count_set THEN
     run_count_strict := 1;
+ELSIF run_count_set AND HMI_run_count_strict <> 0 THEN
+    run_count_strict := HMI_run_count_strict;
 ELSIF NOT run_count_set THEN
     run_count_strict := -1;
 END_IF
+
 
 IF status = 1 THEN
     IF run_count = run_count_strict THEN
