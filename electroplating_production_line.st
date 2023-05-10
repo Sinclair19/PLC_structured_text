@@ -18,9 +18,11 @@ VAR
     up_temp: BOOL;
     down_temp: BOOL;
     status_temp : INT;
+    time_show_temp : INT;
 
-    status AT %MW0: INT; //0 stop ; 1 auto;  2 manual; 3 reset; 4
+    status AT %MW0: INT; //0 stop ; 1 auto;  2 manual; 3 reset; 4 pause;
     pause AT %MX30.0: BOOL;
+    paused BOOL;
     run_count AT %MW1: INT;
     run_count_set AT%MX4.0: BOOL;
     run_count_strict: INT;
@@ -151,13 +153,17 @@ IF pause THEN
     right := FALSE;
     up := FALSE;
     down := FALSE;
-ELSIF (NOT pause) AND status = 4 THEN
+    // time related
+    time_show_temp := time_show;
+    paused := TRUE;
+ELSIF (NOT pause) AND paused THEN
     // restore value
     left := left_temp;
     right := right_temp;
     up := up_temp;
     down := down_temp;
     status := status_temp;
+    paused := FALSE;
 END_IF
 
 // place control
@@ -277,6 +283,8 @@ IF status <> 0 THEN
     
     IF (NOT up_strict) AND (NOT down_strict) THEN
         HMI_up_down_mid := TRUE;
+        HMI_up_strict := FALSE;
+        HMI_down_strict := FALSE;
     END_IF
 
     IF h_direction = 1 AND (left OR right) THEN
@@ -414,7 +422,7 @@ IF status = 1 THEN
     IF run_count = run_count_strict THEN
         status := 3;
     ELSE
-        IF left_strict THEN
+        IF left_strict AND run_count <> run_count_strict THEN
             auto_mode_reset := FALSE;
             left := FALSE;
             right_progress := TRUE;
@@ -558,11 +566,22 @@ IF status = 1 THEN
             run_count := run_count + 1;
             right_progress := FALSE;
             auto_mode_reset := TRUE;
+            already_right_place := TRUE;
         END_IF
 
         IF auto_mode_reset THEN
-            left := TRUE;
-            h_direction := 1;
+            IF NOT left_strict THEN
+                left := TRUE;
+                h_direction := 1;
+            ELSE
+                left := FALSE;
+            END_IF
+            IF NOT up_strict THEN
+                up := TRUE;
+                v_direction := 1;
+            ELSE
+                up := FALSE;
+            END_IF
         END_IF
     END_IF
 END_IF       
@@ -571,7 +590,7 @@ IF TRIG_1.Q THEN
     IF start_timing AND (NOT pause) THEN
         temp_time := temp_time + 1;
         time_show := current_basic_time - temp_time;
-    ELSIF NOT start_timing THEN
+    ELSIF (NOT start_timing) AND (NOT pause) THEN
         time_show := 0;
         temp_time := 0;
     END_IF
