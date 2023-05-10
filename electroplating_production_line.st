@@ -124,12 +124,18 @@ IF SET_TIME THEN
     third_place_time := HMI_third_place_time - 1;
     third_place_stand_time := HMI_third_place_stand_time - 1;
 ELSE
-    first_place_time := 10;
-    first_place_stand_time := 3;
-    second_place_time := 8;
-    second_place_stand_time := 3;
-    third_place_time := 5;
-    third_place_stand_time := 3;
+    first_place_time := 9;
+    first_place_stand_time := 2;
+    second_place_time := 7;
+    second_place_stand_time := 2;
+    third_place_time := 4;
+    third_place_stand_time := 2;
+    HMI_first_place := first_place_time;
+    HMI_first_place_stand_time := first_place_stand_time;
+    HMI_second_place_time := second_place_stand_time;
+    HMI_second_place_stand_time := second_place_stand_time;
+    HMI_third_place_time := third_place_time;
+    HMI_third_place_stand_time := third_place_stand_time;
 END_IF
 
 IF pause THEN
