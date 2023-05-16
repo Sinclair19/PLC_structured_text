@@ -22,7 +22,7 @@ VAR
 
     status AT %MW0: INT; //0 stop ; 1 auto;  2 manual; 3 reset; 4 pause;
     pause AT %MX30.0: BOOL;
-    paused BOOL;
+    paused: BOOL;
     run_count AT %MW1: INT;
     run_count_set AT%MX4.0: BOOL;
     run_count_strict: INT;
@@ -89,6 +89,8 @@ VAR
     current_basic_time: INT;
     start_timing: BOOL;
     temp_time: INT;
+	soft_delay_right: BOOL;
+	soft_delay_left: BOOL;
 
     right_progress: BOOL;
 	down_progress: BOOL;
@@ -118,26 +120,26 @@ IF HMI_TIME_DEFAULT THEN
 	SET_TIME := FALSE;
 END_IF
 
-IF SET_TIME THEN
+IF SET_TIME OR HMI_first_place_time <> 10 THEN
     first_place_time := HMI_first_place_time - 1;
     first_place_stand_time := HMI_first_place_stand_time - 1;
     second_place_time := HMI_second_place_time - 1;
     second_place_stand_time := HMI_second_place_stand_time - 1;
     third_place_time := HMI_third_place_time - 1;
     third_place_stand_time := HMI_third_place_stand_time - 1;
-ELSE
+ELSIF NOT SET_TIME THEN 
     first_place_time := 9;
     first_place_stand_time := 2;
     second_place_time := 7;
     second_place_stand_time := 2;
     third_place_time := 4;
     third_place_stand_time := 2;
-    HMI_first_place := first_place_time;
-    HMI_first_place_stand_time := first_place_stand_time;
-    HMI_second_place_time := second_place_stand_time;
-    HMI_second_place_stand_time := second_place_stand_time;
-    HMI_third_place_time := third_place_time;
-    HMI_third_place_stand_time := third_place_stand_time;
+    HMI_first_place_time := first_place_time + 1;
+    HMI_first_place_stand_time := first_place_stand_time + 1;
+    HMI_second_place_time := second_place_stand_time + 1;
+    HMI_second_place_stand_time := second_place_stand_time + 1;
+    HMI_third_place_time := third_place_time + 1;
+    HMI_third_place_stand_time := third_place_stand_time + 1;
 END_IF
 
 IF pause THEN
@@ -148,11 +150,12 @@ IF pause THEN
     down_temp := down;
     status_temp := status;
     // set to sotp
-    status := 4;
+    
     left := FALSE;
     right := FALSE;
     up := FALSE;
     down := FALSE;
+	status := 4;
     // time related
     time_show_temp := time_show;
     paused := TRUE;
@@ -285,6 +288,8 @@ IF status <> 0 THEN
         HMI_up_down_mid := TRUE;
         HMI_up_strict := FALSE;
         HMI_down_strict := FALSE;
+	ELSIF up_strict OR down_strict THEN
+		HMI_up_down_mid := FALSE;
     END_IF
 
     IF h_direction = 1 AND (left OR right) THEN
@@ -409,24 +414,32 @@ END_IF
 
 
 
-IF run_count_set THEN
+IF run_count_set AND HMI_run_count_strict = 1 THEN
     run_count_strict := 1;
-ELSIF run_count_set AND HMI_run_count_strict <> 0 THEN
+ELSIF run_count_set AND HMI_run_count_strict <> 1 THEN
     run_count_strict := HMI_run_count_strict;
 ELSIF NOT run_count_set THEN
     run_count_strict := -1;
 END_IF
 
+// Introduce soft delay in auto mode in order to prevent electrical motor stock
+// more detailed explaination are in commit message
 
 IF status = 1 THEN
     IF run_count = run_count_strict THEN
         status := 3;
     ELSE
-        IF left_strict AND run_count <> run_count_strict THEN
-            auto_mode_reset := FALSE;
+		IF left_strict THEN
+			soft_delay_right := FALSE;
             left := FALSE;
             right_progress := TRUE;
-			already_first_place := FALSE;
+			
+			IF soft_delay_left THEN // a soft delay
+				auto_mode_reset := FALSE;	
+				soft_delay_left := FALSE;
+			END_IF
+			
+            already_first_place := FALSE;
 			already_second_place := FALSE;
 			already_third_place := FALSE;
             already_right_place := FALSE;
@@ -438,7 +451,15 @@ IF status = 1 THEN
         ELSIF NOT right_progress THEN
             right := FALSE;
         END_IF
+		
+		IF left_strict AND auto_mode_reset THEN
+			soft_delay_left := TRUE; // a soft delay
+		END_IF
         
+		IF auto_mode_reset THEN
+			soft_delay_right := TRUE; // a soft delay
+		END_IF
+		
 		IF first_place AND NOT already_first_place THEN
             right_progress := FALSE;
 			IF NOT down_strict AND NOT already_down THEN
@@ -569,7 +590,7 @@ IF status = 1 THEN
             already_right_place := TRUE;
         END_IF
 
-        IF auto_mode_reset THEN
+        IF auto_mode_reset AND soft_delay_right THEN
             IF NOT left_strict THEN
                 left := TRUE;
                 h_direction := 1;
