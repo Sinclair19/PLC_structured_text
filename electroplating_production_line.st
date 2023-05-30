@@ -120,13 +120,13 @@ IF HMI_TIME_DEFAULT THEN
 	SET_TIME := FALSE;
 END_IF
 
-IF SET_TIME OR HMI_first_place_time <> 10 THEN
-    first_place_time := HMI_first_place_time - 1;
-    first_place_stand_time := HMI_first_place_stand_time - 1;
-    second_place_time := HMI_second_place_time - 1;
-    second_place_stand_time := HMI_second_place_stand_time - 1;
-    third_place_time := HMI_third_place_time - 1;
-    third_place_stand_time := HMI_third_place_stand_time - 1;
+IF SET_TIME THEN
+    first_place_time := HMI_first_place_time;
+    first_place_stand_time := HMI_first_place_stand_time;
+    second_place_time := HMI_second_place_time;
+    second_place_stand_time := HMI_second_place_stand_time;
+    third_place_time := HMI_third_place_time;
+    third_place_stand_time := HMI_third_place_stand_time;
 ELSIF NOT SET_TIME THEN 
     first_place_time := 9;
     first_place_stand_time := 2;
@@ -134,15 +134,15 @@ ELSIF NOT SET_TIME THEN
     second_place_stand_time := 2;
     third_place_time := 4;
     third_place_stand_time := 2;
-    HMI_first_place_time := first_place_time + 1;
-    HMI_first_place_stand_time := first_place_stand_time + 1;
-    HMI_second_place_time := second_place_stand_time + 1;
-    HMI_second_place_stand_time := second_place_stand_time + 1;
-    HMI_third_place_time := third_place_time + 1;
-    HMI_third_place_stand_time := third_place_stand_time + 1;
+    HMI_first_place_time := first_place_time;
+    HMI_first_place_stand_time := first_place_stand_time;
+    HMI_second_place_time := second_place_stand_time;
+    HMI_second_place_stand_time := second_place_stand_time;
+    HMI_third_place_time := third_place_time;
+    HMI_third_place_stand_time := third_place_stand_time;
 END_IF
 
-IF pause THEN
+IF pause AND NOT paused THEN
     // store value
     left_temp := left;
     right_temp := right;
@@ -159,7 +159,7 @@ IF pause THEN
     // time related
     time_show_temp := time_show;
     paused := TRUE;
-ELSIF (NOT pause) AND paused THEN
+ELSIF ((NOT pause) AND paused ) AND status = 1 THEN
     // restore value
     left := left_temp;
     right := right_temp;
